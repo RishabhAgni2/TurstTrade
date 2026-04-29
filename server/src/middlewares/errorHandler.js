@@ -12,7 +12,7 @@ export const globalErrorHandler = (err,req,res,next)=>{
       //mongoose duplicate key
     if(err.code===1000){
         statusCode = 400;
-        const field = Object.keys(err.keysValue)[0];
+        const field = Object.keys(err.keyValue)[0];
         message = `${field} already exists`;
     }
     // Mongoose validation error
