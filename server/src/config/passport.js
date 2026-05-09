@@ -49,3 +49,4 @@ passport.use(new GitHubStrategy({
 
 
 export default passport;
+/*this files consist the logic of Qauth,github*/
