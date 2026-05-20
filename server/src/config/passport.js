@@ -1,7 +1,8 @@
+import 'dotenv/config';
 import passport from "passport";
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
-
+import User from '../models/user.model.js';
 
 passport.use(new GoogleStrategy({
     clientID:  process.env.GOOGLE_CLIENT_ID,
@@ -49,3 +50,4 @@ passport.use(new GitHubStrategy({
 
 
 export default passport;
+/*this files consist the logic of Qauth,github*/
