@@ -1,6 +1,6 @@
 import express from 'express';
 import {getMe, updateMe, getUserById } from '../controllers/user.controller.js';
-import { protect } from '../middlewares.auth.midddleware.js';
+import { protect } from '../middlewares/auth.middleware.js';
 import { upload } from '../config/cloudinary.js';
 
 

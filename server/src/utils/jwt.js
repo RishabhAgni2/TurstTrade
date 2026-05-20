@@ -1,9 +1,9 @@
-import jwt from 'jasonwebtoken';
+import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
 export const generateAccessToken = (userId,role)=>
     jwt.sign({id:userId,role},process.env.JWT_ACCESS_SECRET,{
-        expireIn: process.env.JWT_ACCESS_EXPIRES || '15m',
+        expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m',
     });
 
 export const generateRefreshToken=(userId)=>
