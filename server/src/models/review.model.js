@@ -1,10 +1,6 @@
 import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema({
-    reviewer: {type: mongoose.Schema.Types.ObjectId,ref:'User',required:true},
-})import mongoose from 'mongoose';
-
-const reviewSchema = new mongoose.Schema({
   reviewer:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   reviewee:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   order:     { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
