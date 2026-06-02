@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import {connectRedis} from './config/redis.js';
-//import { initSocket } from '/sockets/index.js';
+import { initSocket } from '/sockets/index.js';
 import { globalErrorHandler , notFound } from './middlewares/errorHandler.js';
 import { globalRateLimiter } from './middlewares/rateLimiter.js';
 import logger from './utils/logger.js';
@@ -31,7 +31,7 @@ const app = express();
 const server = http.createServer(app);
 
 //Inint Socket.io
-//initSocket(server);
+initSocket(server);
 
 //connect DB and Redis
 connectDB();
