@@ -27,7 +27,7 @@ export const useSocket = (user) => {
       dispatch(updateOrderStatus({ orderId: data.orderId, status: 'released' }));
     });
 
-    socket.on('NEW_MESSAGE', ({ chatId, message }) => {
+    socket.on('NEW_MESSAGE', ({ message }) => {
       dispatch(addMessage(message));
     });
 
