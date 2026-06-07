@@ -1,34 +1,53 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { Toaster } from 'react-hot-toast';
 import { setUser } from './store/slices/auth.slice.js';
 import { useSocket } from './hooks/useSocket.js';
 import api from './store/api/axios.js';
 
-// Layouts — branch 8 mein banenge
-// import MainLayout      from './components/layout/MainLayout.jsx';
-// import DashboardLayout from './components/layout/DashboardLayout.jsx';
+// Layout
+import MainLayout from './components/layout/MainLayout.jsx';
+import DashboardLayout from './components/layout/DashboardLayout.jsx';
+
+// Auth Pages
+import LoginPage      from './pages/auth/LoginPage.jsx';
+import RegisterPage   from './pages/auth/RegisterPage.jsx';
+import VerifyOTPPage  from './pages/auth/VerifyOTPPage.jsx';
+import OAuthCallback  from './pages/auth/OAuthCallback.jsx';
+
+// Buyer Pages
+import HomePage       from './pages/buyer/HomePage.jsx';
+import ProductPage    from './pages/buyer/ProductPage.jsx';
+//import CartPage       from './pages/buyer/CartPage.jsx';
+import OrdersPage     from './pages/buyer/OrdersPage.jsx';
+import OrderDetailPage from './pages/buyer/OrderDetailPage.jsx';
+import ProfilePage    from './pages/buyer/ProfilePage.jsx';
+import ChatPage       from './pages/buyer/ChatPage.jsx';
+
+// Seller Pages
+import SellerDashboard  from './pages/seller/SellerDashboard.jsx';
+import CreateProduct    from './pages/seller/CreateProduct.jsx';
+import MyListings       from './pages/seller/MyListings.jsx';
+import SellerOrders     from './pages/seller/SellerOrders.jsx';
+import WalletPage       from './pages/seller/WalletPage.jsx';
+
+// Admin Pages
+import AdminDashboard   from './pages/admin/AdminDashboard.jsx';
+import AdminUsers       from './pages/admin/AdminUsers.jsx';
+import AdminDisputes    from './pages/admin/AdminDisputes.jsx';
+import AdminProducts    from './pages/admin/AdminProducts.jsx';
 
 // Guards
-import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
-import RoleRoute      from './components/auth/RoleRoute.jsx';
-
-// Placeholder pages — branch 9 mein replace honge
-const Placeholder = ({ name }) => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-indigo-600">{name}</h2>
-      <p className="text-gray-500 mt-2">Page under construction</p>
-    </div>
-  </div>
-);
+import ProtectedRoute   from './components/auth/ProtectedRoute.jsx';
+import RoleRoute        from './components/auth/RoleRoute.jsx';
 
 function App() {
   const dispatch = useDispatch();
-  const { user } = useSelector(s => s.auth);
+  const { user } = useSelector(state => state.auth);
   useSocket(user);
 
-  // Session restore — page refresh pe user logged in rahe
+  // Restore user session on mount
   useEffect(() => {
     const restoreSession = async () => {
       const token = localStorage.getItem('accessToken');
@@ -45,32 +64,46 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <Routes>
-        {/* Public routes — placeholder */}
-        <Route path="/"         element={<Placeholder name="Home" />} />
-        <Route path="/login"    element={<Placeholder name="Login" />} />
-        <Route path="/register" element={<Placeholder name="Register" />} />
+        {/* Auth */}
+        <Route path="/login"         element={<LoginPage />} />
+        <Route path="/register"      element={<RegisterPage />} />
+        <Route path="/verify-otp"    element={<VerifyOTPPage />} />
+        <Route path="/auth/callback" element={<OAuthCallback />} />
 
-        {/* Protected — placeholder */}
-        <Route path="/orders" element={
-          <ProtectedRoute>
-            <Placeholder name="My Orders" />
-          </ProtectedRoute>
-        } />
+        {/* Public routes with main layout */}
+        <Route element={<MainLayout />}>
+          <Route path="/"             element={<HomePage />} />
+          <Route path="/products/:id" element={<ProductPage />} />
+        </Route>
 
-        {/* Seller — placeholder */}
-        <Route path="/seller" element={
-          <RoleRoute roles={['seller', 'admin']}>
-            <Placeholder name="Seller Dashboard" />
-          </RoleRoute>
-        } />
+        {/* Protected Buyer Routes */}
+        <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+          <Route path="/orders"        element={<OrdersPage />} />
+          <Route path="/orders/:id"    element={<OrderDetailPage />} />
+          {/* //<Route path="/cart"          element={<CartPage />} /> */}
+          <Route path="/chat"          element={<ChatPage />} />
+          <Route path="/chat/:chatId"  element={<ChatPage />} />
+          <Route path="/profile"       element={<ProfilePage />} />
+        </Route>
 
-        {/* Admin — placeholder */}
-        <Route path="/admin" element={
-          <RoleRoute roles={['admin']}>
-            <Placeholder name="Admin Dashboard" />
-          </RoleRoute>
-        } />
+        {/* Seller Routes */}
+        <Route element={<RoleRoute roles={['seller','admin']}><DashboardLayout /></RoleRoute>}>
+          <Route path="/seller"              element={<SellerDashboard />} />
+          <Route path="/seller/listings"     element={<MyListings />} />
+          <Route path="/seller/listings/new" element={<CreateProduct />} />
+          <Route path="/seller/orders"       element={<SellerOrders />} />
+          <Route path="/seller/wallet"       element={<WalletPage />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route element={<RoleRoute roles={['admin']}><DashboardLayout /></RoleRoute>}>
+          <Route path="/admin"           element={<AdminDashboard />} />
+          <Route path="/admin/users"     element={<AdminUsers />} />
+          <Route path="/admin/disputes"  element={<AdminDisputes />} />
+          <Route path="/admin/products"  element={<AdminProducts />} />
+        </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
