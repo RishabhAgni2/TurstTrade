@@ -44,7 +44,9 @@ const authSlice = createSlice({
   name: 'auth',
   initialState: { user: null, isAuthenticated: false, loading: false, error: null, pendingUserId: null },
   reducers: {
-    setUser: (state, action) => { state.user = action.payload; state.isAuthenticated = !!action.payload; },
+    setUser: (state, action) => { 
+      console.log("SET USER PAYLOAD:", action.payload);
+      state.user = action.payload; state.isAuthenticated = !!action.payload; },
     clearError: (state) => { state.error = null; },
   },
   extraReducers: (builder) => {

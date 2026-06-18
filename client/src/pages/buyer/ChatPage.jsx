@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Send, MessageSquare } from 'lucide-react';
 import api from '../../store/api/axios.js';
-import { getIO } from '../../store/api/axios.js';
 
 const ChatPage = () => {
   const { chatId } = useParams();

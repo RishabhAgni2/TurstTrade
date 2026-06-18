@@ -9,6 +9,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
 
   const product = await Product.findById(productId).populate('seller');
   if (!product)              return errorResponse(res, 404, 'Product not found.');
+  if (!product.seller)       return errorResponse(res, 400, 'Product seller is no longer available.');
   if (product.status !== 'active') return errorResponse(res, 400, 'Product not available.');
   if (product.seller._id.toString() === req.user._id.toString())
     return errorResponse(res, 400, 'Cannot buy your own product.');

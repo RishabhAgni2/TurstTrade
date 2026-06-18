@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Shield, Github } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { loginUser } from '../../store/slices/auth.slice.js';
 
 const schema = z.object({
@@ -48,7 +48,7 @@ const LoginPage = () => {
           </button>
           <button onClick={handleGitHubLogin}
             className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-            <Github className="w-4 h-4" />
+            <span className="text-base font-bold leading-none">GH</span>
             GitHub
           </button>
         </div>

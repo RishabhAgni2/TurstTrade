@@ -20,7 +20,7 @@ const OAuthCallback = () => {
     } else {
       navigate('/login');
     }
-  }, []);
+  }, [dispatch, navigate, params]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

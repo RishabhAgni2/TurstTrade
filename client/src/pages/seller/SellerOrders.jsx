@@ -1,58 +1,95 @@
 import { useEffect, useState } from 'react';
-import { Wallet, ArrowDownCircle, TrendingUp } from 'lucide-react';
-import api from '../../store/api/axios.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { fetchMyOrders } from '../../store/slices/order.slice.js';
+import EscrowBadge from '../../components/common/EscrowBadge.jsx';
 import Loader from '../../components/common/Loader.jsx';
+import EmptyState from '../../components/common/EmptyState.jsx';
+import { ShoppingCart } from 'lucide-react';
+import api from '../../store/api/axios.js';
+import toast from 'react-hot-toast';
 
-const WalletPage = () => {
-  const [wallet, setWallet] = useState(null);
-  const [loading, setLoading] = useState(true);
+const SellerOrders = () => {
+  const dispatch            = useDispatch();
+  const { orders, loading } = useSelector(s => s.orders);
+  const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
-    api.get('/payments/wallet').then(({ data }) => setWallet(data.data.wallet))
-      .finally(() => setLoading(false));
-  }, []);
+    dispatch(fetchMyOrders({ role: 'seller' }));
+  }, [dispatch]);
 
-  if (loading) return <Loader text="Loading wallet..." />;
+  const handleMarkDelivered = async (orderId) => {
+    setUpdatingId(orderId);
+    try {
+      await api.patch(`/orders/${orderId}/mark-delivered`, { trackingId: '' });
+      toast.success('Marked as delivered!');
+      dispatch(fetchMyOrders({ role: 'seller' }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update order.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  if (loading) return <Loader text="Loading orders..." />;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">My Wallet</h1>
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Orders Received</h1>
 
-      {/* Balance Card */}
-      <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-8 text-white">
-        <div className="flex items-center gap-3 mb-4">
-          <Wallet className="w-6 h-6 text-indigo-200" />
-          <span className="text-indigo-200 text-sm">Available Balance</span>
-        </div>
-        <p className="text-5xl font-bold">₹{(wallet?.balance || 0).toLocaleString()}</p>
-        <p className="text-indigo-200 text-sm mt-2">{wallet?.currency || 'INR'}</p>
-      </div>
+      {orders.length === 0 ? (
+        <EmptyState
+          icon={ShoppingCart}
+          title="No orders yet"
+          description="Orders from buyers will appear here."
+        />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {orders.map(order => (
+            <div key={order._id}
+              className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-4">
 
-      {/* Info Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <TrendingUp className="w-5 h-5 text-green-500 mb-2" />
-          <p className="text-sm text-gray-500">Total Earned</p>
-          <p className="text-xl font-bold text-gray-900">₹{(wallet?.balance || 0).toLocaleString()}</p>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <ArrowDownCircle className="w-5 h-5 text-blue-500 mb-2" />
-          <p className="text-sm text-gray-500">Pending in Escrow</p>
-          <p className="text-xl font-bold text-gray-900">₹0</p>
-        </div>
-      </div>
+              <Link to={`/orders/${order._id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                <img
+                  src={order.product?.images?.[0]?.url || '/placeholder.png'}
+                  className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                  alt=""
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-800 truncate">
+                    {order.product?.title}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Buyer: {order.buyer?.name}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </Link>
 
-      {/* Withdraw */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Withdraw Funds</h2>
-        <p className="text-sm text-gray-500 mb-4">Withdrawals are processed within 1-3 business days to your registered bank account.</p>
-        <input type="number" placeholder="Enter amount" max={wallet?.balance}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        <button className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition">
-          Withdraw to Bank
-        </button>
-      </div>
+              <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                <p className="font-bold text-gray-900">
+                  ₹{order.amount?.toLocaleString()}
+                </p>
+                <EscrowBadge status={order.escrowStatus} />
+              </div>
+
+              {order.escrowStatus === 'funded' && (
+                <button
+                  onClick={() => handleMarkDelivered(order._id)}
+                  disabled={updatingId === order._id}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition flex-shrink-0"
+                >
+                  {updatingId === order._id ? 'Updating...' : 'Mark Delivered'}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
-export default WalletPage;
+
+export default SellerOrders;

@@ -50,12 +50,11 @@ function App() {
   // Restore user session on mount
   useEffect(() => {
     const restoreSession = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
+      
       try {
         const { data } = await api.get('/users/me');
         dispatch(setUser(data.data.user));
-      } catch {
+      } catch{
         localStorage.removeItem('accessToken');
       }
     };

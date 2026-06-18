@@ -2,28 +2,42 @@ import asyncHandler from 'express-async-handler';
 import Product from '../models/product.model.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 import { getRedis } from '../config/redis.js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from "@google/genai";
 
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
 // @POST /api/products — Create product
 export const createProduct = asyncHandler(async (req, res) => {
-  const { title, description, price, category, condition, location, tags } = req.body;
+  const { title, description, price, category, condition, city, state, pincode, location, tags } = req.body;
   const images = req.files?.map(f => ({ url: f.path, publicId: f.filename })) || [];
 
   // AI: Generate enhanced description
   let aiDescription = '';
-  try {
-    const model  = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-const prompt = `Write a compelling 2-sentence product listing for: "${title}". Category: ${category}. Description: "${description}"`;
-const result = await model.generateContent(prompt);
-aiDescription = result.response.text();
-  } catch (_) {}
+
+try {
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `Write a compelling 2-sentence product listing for:
+    "${title}".
+    Category: ${category}.
+    Description: "${description}"`,
+  });
+
+  aiDescription = response.text;
+
+  console.log("✅ AI Description:", aiDescription);
+
+} catch (err) {
+  console.log("❌ FULL AI ERROR:", err);
+}
 
   const product = await Product.create({
     seller: req.user._id,
     title, description, price, category, condition,
-    images, location, tags: tags || [],
+    images,
+    location: location || { city, state, pincode },
+    tags: Array.isArray(tags) ? tags : (tags ? tags.split(',').map(tag => tag.trim()).filter(Boolean) : []),
     aiDescription,
   });
 
