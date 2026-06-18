@@ -4,9 +4,15 @@ import Order from '../models/order.model.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 import { sendEmail } from '../utils/email.js';
 import { notifyUser } from '../sockets/index.js';
-import OpenAI from 'openai';
+import { GoogleGenAI } from "@google/genai";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const getGeminiClient = () => {
+  if (!process.env.GEMINI_API_KEY) return null;
+
+  return new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+  });
+};
 
 // @POST /api/disputes
 export const raiseDispute = asyncHandler(async (req, res) => {
@@ -21,13 +27,25 @@ export const raiseDispute = asyncHandler(async (req, res) => {
   // AI risk scoring
   let aiRiskScore = 0;
   try {
-    const ai = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: `Rate fraud risk 0-100 for dispute: "${reason}. ${description}". Reply only with a number.` }],
-      max_tokens: 5,
-    });
-    aiRiskScore = parseInt(ai.choices[0].message.content) || 0;
-  } catch (_) {}
+    const genAI = getGeminiClient();
+    if (!genAI) throw new Error('GEMINI_API_KEY is not configured');
+
+    const response = await genAI.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: `Rate fraud risk from 0 to 100 for this dispute.
+
+Reason: ${reason}
+Description: ${description}
+
+Reply ONLY with a number.`
+});
+
+const text = response.text?.trim() || "0";
+
+aiRiskScore = parseInt(text, 10) || 0;
+  } catch (err) {
+    console.log('AI skip:', err.message);
+  }
 
   const dispute = await Dispute.create({ order: orderId, raisedBy: req.user._id, against, reason, description, aiRiskScore });
   order.escrowStatus = 'disputed';

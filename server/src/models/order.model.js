@@ -50,6 +50,5 @@ const orderSchema = new mongoose.Schema({
 orderSchema.index({ buyer: 1, escrowStatus: 1 });
 orderSchema.index({ seller: 1, escrowStatus: 1 });
 orderSchema.index({ 'payment.razorpayOrderId': 1 });
-orderSchema.index({ 'payment.idempotencyKey': 1 });
 
 export default mongoose.model('Order', orderSchema);

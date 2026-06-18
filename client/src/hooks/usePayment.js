@@ -20,6 +20,7 @@ export const usePayment = () => {
         description: 'Secure Escrow Payment',
         theme:    { color: '#6366f1' },
         handler: async (response) => {
+          await api.post('/payments/verify', response);
           toast.success('Payment successful! Funds held in escrow.');
           onSuccess?.(response);
         },

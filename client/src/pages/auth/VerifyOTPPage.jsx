@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Shield } from 'lucide-react';
-import { verifyOTP } from '../../store/slices/auth.slice.js';
 import api from '../../store/api/axios.js';
 
 const VerifyOTPPage = () => {
@@ -10,7 +9,6 @@ const VerifyOTPPage = () => {
   const [loading, setLoading] = useState(false);
   const inputsRef = useRef([]);
   const navigate  = useNavigate();
-  const dispatch  = useDispatch();
   const { pendingUserId } = useSelector(state => state.auth);
 
   const handleChange = (val, idx) => {

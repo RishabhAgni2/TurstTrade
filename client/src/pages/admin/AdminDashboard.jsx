@@ -1,57 +1,196 @@
-import { AlertTriangle, Package, Users, Wallet } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  Users,
+  Package,
+  ShoppingCart,
+  AlertTriangle,
+  TrendingUp,
+  DollarSign,
+} from 'lucide-react';
 
-const stats = [
-  { icon: Users, label: 'Total Users', value: '1,284', color: 'bg-blue-100 text-blue-600' },
-  { icon: Wallet, label: 'Total Revenue', value: '₹48.2L', color: 'bg-green-100 text-green-600' },
-  { icon: Package, label: 'Total Orders', value: '3,891', color: 'bg-yellow-100 text-yellow-600' },
-  { icon: AlertTriangle, label: 'Open Disputes', value: '12', color: 'bg-red-100 text-red-600' },
-];
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
-const disputes = [
-  ['iPhone 13 Pro', 'Item not as described', '87/100', 'Favor Buyer'],
-  ['MacBook Air', 'Delayed delivery', '23/100', 'Favor Seller'],
-  ['PS5 Console', 'Wrong item sent', '91/100', 'Favor Buyer'],
-];
+import api from '../../store/api/axios.js';
+import Loader from '../../components/common/Loader.jsx';
 
-const AdminDashboard = () => (
-  <div className="space-y-6">
-    <h1 className="text-2xl font-bold text-gray-950">Admin Dashboard</h1>
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444'];
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {stats.map(({ icon: Icon, label, value, color }) => (
-        <div key={label} className="bg-white border border-gray-200 rounded-xl p-6">
-          <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-4`}>
-            <Icon className="w-5 h-5" />
+const AdminDashboard = () => {
+  const [stats, setStats] = useState({
+    users: 0,
+    products: 0,
+    orders: 0,
+    disputes: 0,
+    revenue: 0,
+    platformFee: 0,
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get('/admin/stats');
+
+        console.log('ADMIN STATS =>', res.data);
+
+        setStats({
+          users: res.data.data.users || 0,
+          products: res.data.data.products || 0,
+          orders: res.data.data.orders || 0,
+          disputes: res.data.data.disputes || 0,
+          revenue: res.data.data.revenue || 0,
+          platformFee: res.data.data.platformFee || 0,
+        });
+      } catch (error) {
+        console.error('Dashboard Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const orderData = [
+    { name: 'Orders', orders: stats.orders },
+  ];
+
+  const roleData = [
+    { name: 'Users', value: stats.users },
+    { name: 'Products', value: stats.products },
+    { name: 'Orders', value: stats.orders },
+    { name: 'Disputes', value: stats.disputes },
+  ];
+
+  const cards = [
+    {
+      icon: Users,
+      label: 'Total Users',
+      value: stats.users,
+      color: 'bg-blue-100 text-blue-600',
+    },
+    {
+      icon: Package,
+      label: 'Active Products',
+      value: stats.products,
+      color: 'bg-purple-100 text-purple-600',
+    },
+    {
+      icon: ShoppingCart,
+      label: 'Total Orders',
+      value: stats.orders,
+      color: 'bg-green-100 text-green-600',
+    },
+    {
+      icon: AlertTriangle,
+      label: 'Open Disputes',
+      value: stats.disputes,
+      color: 'bg-red-100 text-red-600',
+    },
+    {
+      icon: DollarSign,
+      label: 'Total Revenue',
+      value: `₹${stats.revenue.toLocaleString()}`,
+      color: 'bg-yellow-100 text-yellow-600',
+    },
+    {
+      icon: TrendingUp,
+      label: 'Platform Fees',
+      value: `₹${stats.platformFee.toLocaleString()}`,
+      color: 'bg-indigo-100 text-indigo-600',
+    },
+  ];
+
+  if (loading) return <Loader />;
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-gray-900">
+        Admin Dashboard
+      </h1>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {cards.map(({ icon: Icon, label, value, color }) => (
+          <div
+            key={label}
+            className="bg-white border border-gray-200 rounded-xl p-5"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-gray-500">{label}</p>
+
+              <div
+                className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}
+              >
+                <Icon className="w-4 h-4" />
+              </div>
+            </div>
+
+            <p className="text-2xl font-bold text-gray-900">
+              {value}
+            </p>
           </div>
-          <p className="text-2xl font-bold text-gray-950">{value}</p>
-          <p className="text-sm text-gray-500">{label}</p>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
 
-    <div>
-      <h2 className="text-sm font-semibold text-gray-950 mb-3">Recent Disputes — AI Risk Scores</h2>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500">
-            <tr><th className="text-left px-4 py-3">Order</th><th className="text-left px-4 py-3">Reason</th><th className="text-left px-4 py-3">AI Risk</th><th className="text-left px-4 py-3">Action</th></tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {disputes.map(([order, reason, risk, action]) => (
-              <tr key={order}>
-                <td className="px-4 py-4">{order}</td>
-                <td className="px-4 py-4">{reason}</td>
-                <td className="px-4 py-4">
-                  <span className={`rounded-full px-2 py-1 text-xs ${risk.startsWith('2') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{risk}</span>
-                </td>
-                <td className="px-4 py-4"><button className="border border-gray-400 rounded-lg px-4 py-2 font-semibold hover:bg-gray-50">{action}</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
+            Orders Overview
+          </h2>
+
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={orderData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="orders" fill="#6366f1" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
+            Platform Overview
+          </h2>
+
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={roleData}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                dataKey="value"
+                label
+              >
+                {roleData.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default AdminDashboard;
