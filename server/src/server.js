@@ -50,7 +50,7 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), raz
 app.use(express.json({limit: '10mb'}));
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
-app.use(globalRateLimiter);
+app.use('/api', globalRateLimiter);
 app.use(passport.initialize());
 //Health check
 app.get('/health',(req,res)=>res.json({status: 'OK',timestamp:new Date() }));
